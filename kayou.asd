@@ -2,7 +2,7 @@
 
 (defsystem kayou
   :description "Asteroid clone"
-  :depends-on (glaw glaw-imago glop)
+  :depends-on (glaw glop)
   :serial t
   :components
   ((:file "package")
