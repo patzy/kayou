@@ -41,7 +41,8 @@
 (defstruct entity
   (pos (glaw:make-vector-2d :x 0.0 :y 0.0))
   (speed (glaw:make-vector-2d :x 0.0 :y 0.0))
-  shape)
+  shape
+  (bbox (glaw:make-bbox)))
 
 (defmethod render ((it entity))
   (glaw:set-color/rgb 1.0 1.0 1.0 1.0)
@@ -59,7 +60,8 @@
     (when (< *screen-height* (glaw:vector-2d-y (entity-pos it)))
       (setf (glaw:vector-2d-y (entity-pos it)) 0.0))
     (let ((dp (glaw:vec-diff old-pos (entity-pos it))))
-      (glaw:translate-shape (entity-shape it) (glaw:vector-2d-x dp) (glaw:vector-2d-y dp) 0.0))))
+      (glaw:translate-shape (entity-shape it) (glaw:vector-2d-x dp) (glaw:vector-2d-y dp) 0.0)
+      (glaw:bbox-overwrite/shape (entity-bbox it) (entity-shape it)))))
 
 ;; Bullet
 (defstruct (bullet (:include entity))
@@ -71,6 +73,7 @@
                                                   angle)
                           :shape (glaw:create-circle-shape 0.0 0.0 3))))
     (glaw:translate-shape (bullet-shape bul) x y 0)
+    (glaw:bbox-update/shape (bullet-bbox bul) (bullet-shape bul))
     bul))
 
 (defmethod render ((it bullet))
@@ -94,6 +97,7 @@
                                                    :y (glaw:random-between -30.0 30.0)))))
     (glaw:translate-shape (ship-shape ship) (glaw:vector-2d-x (ship-pos ship))
                                             (glaw:vector-2d-y (ship-pos ship)) 0.0)
+    (glaw:bbox-update/shape (ship-bbox ship) (ship-shape ship))
     ship))
 
 (defmethod render ((it ship))
@@ -173,6 +177,7 @@
                                         collect (list (* length (cos (glaw:deg->rad angle)))
                                                       (* length (sin (glaw:deg->rad angle)))))))
     (glaw:translate-shape (rock-shape rock) (float x) (float y) 0)
+    (glaw:bbox-update/shape (rock-bbox rock) (rock-shape rock))
     rock))
 
 (defmethod render ((it rock))
@@ -277,7 +282,7 @@
 
 (defun game-spawn-rock (game)
   (loop for rock = (create-rock)
-       while (glaw:shape-intersect-p (rock-shape rock) (ship-shape (game-screen-ship game)))
+       while (glaw:bbox-intersect-p (rock-bbox rock) (ship-bbox (game-screen-ship game)))
        do (format t "Spawned on player, retrying !!!~%")
        finally (push rock (game-screen-rocks game))))
 
@@ -372,13 +377,13 @@
 (defun game-collide-bullets (game)
   (dolist (b (game-screen-bullets game))
     (dolist (r (game-screen-rocks game))
-      (when (glaw:shape-intersect-p (bullet-shape b) (rock-shape r))
+      (when (glaw:bbox-intersect-p (bullet-bbox b) (rock-bbox r))
         (game-explode-rock game r)
         (game-destroy-bullet game b)))))
 
 (defun game-collide-ship (game)
   (dolist (r (game-screen-rocks game))
-    (when (glaw:shape-intersect-p (ship-shape (game-screen-ship game)) (rock-shape r))
+    (when (glaw:bbox-intersect-p (ship-bbox (game-screen-ship game)) (rock-bbox r))
       (return-from game-collide-ship t))))
 
 
