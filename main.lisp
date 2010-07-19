@@ -534,10 +534,10 @@
                             last-update-time))
            (dt (/ (* elapsed-time 1.0)
                   internal-time-units-per-second)))
+      (setf last-update-time (get-internal-real-time))
       (glaw:update-sound)
       (glaw:update-scheduler dt)
-      (glaw:update-screens *stack* dt)
-      (setf last-update-time (get-internal-real-time)))))
+      (glaw:update-screens *stack* dt))))
 
 (defmethod glop:on-key (window pressed keycode keysym string)
   (glaw:dispatch-key-event keysym (if pressed :press :release) keycode string))
