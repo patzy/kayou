@@ -50,7 +50,8 @@
 
 (defmethod update ((it entity) dt)
   (let ((old-pos (entity-pos it)))
-    (setf (entity-pos it) (glaw:vec-sum (entity-pos it) (glaw:vec-scale (entity-speed it) dt)))
+    (setf (entity-pos it) (glaw:vector-2d-sum (entity-pos it)
+                                              (glaw:vector-2d-scale (entity-speed it) dt)))
     (when (> 0 (glaw:vector-2d-x (entity-pos it)))
       (setf (glaw:vector-2d-x (entity-pos it)) (float *screen-width*)))
     (when (< *screen-width* (glaw:vector-2d-x (entity-pos it)))
@@ -59,7 +60,7 @@
     (setf (glaw:vector-2d-y (entity-pos it)) (float *screen-height*)))
     (when (< *screen-height* (glaw:vector-2d-y (entity-pos it)))
       (setf (glaw:vector-2d-y (entity-pos it)) 0.0))
-    (let ((dp (glaw:vec-diff old-pos (entity-pos it))))
+    (let ((dp (glaw:vector-2d-diff (entity-pos it) old-pos)))
       (glaw:translate-shape (entity-shape it) (glaw:vector-2d-x dp) (glaw:vector-2d-y dp) 0.0)
       (glaw:bbox-overwrite/shape (entity-bbox it) (entity-shape it)))))
 
@@ -69,7 +70,7 @@
 
 (defun create-bullet (x y speed angle)
   (let ((bul (make-bullet :pos (glaw:make-vector-2d :x x :y y)
-                          :speed (glaw:vec-rotate (glaw:make-vector-2d :x speed :y 0.0)
+                          :speed (glaw:vector-2d-rotate (glaw:make-vector-2d :x speed :y 0.0)
                                                   angle)
                           :shape (glaw:create-circle-shape 0.0 0.0 3))))
     (glaw:translate-shape (bullet-shape bul) x y 0)
@@ -369,7 +370,7 @@
       (let* ((ship (game-screen-ship game))
              (bul (create-bullet (glaw:vector-2d-x (ship-pos ship))
                                  (glaw:vector-2d-y (ship-pos ship))
-                                 (+ (glaw:vec-mag (ship-speed ship)) 400.0)
+                                 (+ (glaw:vector-2d-mag (ship-speed ship)) 400.0)
                                (glaw:deg->rad (ship-angle ship)))))
         (push bul (game-screen-bullets game))
         (glaw:play-sound (game-screen-pew game) :volume *sfx-volume*)))))
@@ -569,7 +570,7 @@
   ;; how to get extensions
   (setf cl-opengl-bindings:*gl-get-proc-address* 'glop:gl-get-proc-address)
   (glop:with-window (win "Kayou" *screen-width* *screen-height*)
-    (glaw:setup-gl-defaults)
+    (glaw:setup-2d-defaults)
     (gl:clear-color 0.0 0.0 0.0 1.0)
     (glaw:reshape *screen-width* *screen-height*)
     (init)
