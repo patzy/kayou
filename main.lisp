@@ -526,6 +526,7 @@
 (defun draw ()
   (glaw:set-view-2d *view*)
   (glaw:begin-draw)
+  (glaw:draw-origin)
   (glaw:render-screens *stack*)
   (glaw:end-draw))
 
@@ -555,15 +556,12 @@
   (glaw:dispatch-motion-event :mouse dx dy))
 
 (defmethod glop:on-draw (window)
-  (draw)
-  (glop:swap-buffers window))
+  (declare (ignore window)))
 
 (defmethod glop:on-resize (window w h)
   (glaw:reshape w h)
   (setf *screen-width* w *screen-height* h)
-  (glaw:update-2d-view *view* 0 0 *screen-width* *screen-height*)
-  (draw)
-  (glop:swap-buffers window))
+  (glaw:update-2d-view *view* 0 0 *screen-width* *screen-height*))
 
 
 (defun run ()
